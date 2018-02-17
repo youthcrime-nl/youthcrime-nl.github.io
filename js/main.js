@@ -1,8 +1,9 @@
 $(function () {
-    var API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/TypedDataSet";
+    var API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/";
+    var TYPED_DATASET = "TypedDataSet";
     //var data;
     // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
-    var jqxhr = $.getJSON(API_URL, function () {
+    var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function () {
         console.log("success");
         //data = t;
     });
@@ -15,6 +16,15 @@ $(function () {
                     "<ul>";
 
                 $.each(item, function (key, value) {
+                    /* TODO translate some of the values corresponding to their key
+                        Geslacht (Sex) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Geslacht
+                        Leeftijd (Age) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Leeftijd
+                        Herkomstgroeperingen (Origin) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Herkomstgroeperingen
+                        Perioden (Periods) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Perioden
+
+                        Descriptions for each property -> https://opendata.cbs.nl/ODataApi/odata/71930ned/DataProperties
+                        Information about the complete data set -> https://opendata.cbs.nl/ODataApi/odata/71930ned/TableInfos
+                     */
                     html += "<li class='" + key + "'>" + translate(key) + ": " + value + "</li>";
                 });
 
