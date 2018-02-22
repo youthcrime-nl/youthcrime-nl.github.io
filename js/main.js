@@ -1,49 +1,20 @@
 var API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/";
 var TYPED_DATASET = "TypedDataSet";
 var typedDataArray;
+var entryDisplayCount = 100, currentID = 0;
 
 $(function () {
     //var data;
     // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
     var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function (data) {
-        typedDataObject = data.value;
-        console.log(typedDataObject);
-
-        /*console.log("success");
-        var items = [];
-        $.each(data.value, function (i, item) {
-            var html = "<div id='" + item.ID + "'>" + "<h1>" + (parseInt(item.ID) + 1) + ". Entry" +
-                "<small><i> ID: " + item.ID + "</i></small></h1>" +
-                "<ul>";
-
-            $.each(item, function (key, value) {
-                /!* TODO translateLanguage some of the values corresponding to their key
-                    Geslacht (Sex) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Geslacht
-                    Leeftijd (Age) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Leeftijd
-                    Herkomstgroeperingen (Origin) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Herkomstgroeperingen
-                    Perioden (Periods) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Perioden
-
-                    Descriptions for each property -> https://opendata.cbs.nl/ODataApi/odata/71930ned/DataProperties
-                    Information about the complete data set -> https://opendata.cbs.nl/ODataApi/odata/71930ned/TableInfos
-                 *!/
-                html += "<li class='" + key + "'>" + translateLanguage(key) + ": " + value + "</li>";
-            });
-
-            html += "</ul></div>";
-            items.push(html);
-        });
-
-        var $content = $("<section></section>", {
-            "class": "all-crimes",
-            html: items.join("<hr>")
-        });
-
-        $("body").append($content);*/
+        typedDataArray = data.value;
+        console.log(typedDataArray);
     });
 
     // Assign handlers
     jqxhr.done(function(data) {
-            console.log("finished getting items");
+            console.log("Finished getting items");
+            displayData(currentID, entryDisplayCount);
         })
         .fail(function() {
             console.error("There was an error with the youth crime query!" );
@@ -52,6 +23,39 @@ $(function () {
             console.log( "Youth crime api query completed." );
         });
 });
+
+function displayData(startItemID, itemCount) {
+    var items = [];
+    for (var i = currentID; i > typedDataArray.length && i > currentID + entryDisplayCount; i++) {
+        var item = typedDataArray[i];
+        var html = "<div id='" + item.ID + "'>" + "<h1>" + (parseInt(item.ID) + 1) + ". Entry" +
+            "<small><i> ID: " + item.ID + "</i></small></h1>" +
+            "<ul>";
+
+        $.each(item, function (key, value) {
+            /* TODO translateLanguage some of the values corresponding to their key
+                Geslacht (Sex) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Geslacht
+                Leeftijd (Age) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Leeftijd
+                Herkomstgroeperingen (Origin) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Herkomstgroeperingen
+                Perioden (Periods) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Perioden
+
+                Descriptions for each property -> https://opendata.cbs.nl/ODataApi/odata/71930ned/DataProperties
+                Information about the complete data set -> https://opendata.cbs.nl/ODataApi/odata/71930ned/TableInfos
+             */
+            html += "<li class='" + key + "'>" + translateLanguage(key) + ": " + value + "</li>";
+        });
+
+        html += "</ul></div>";
+        items.push(html);
+    }
+
+    var $content = $("<section></section>", {
+        "class": "all-crimes",
+        html: items.join("<hr>")
+    });
+
+    $("body").append($content);
+}
 
 function translateLanguage(json_key) {
 
