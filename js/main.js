@@ -1,55 +1,59 @@
+var API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/";
+var TYPED_DATASET = "TypedDataSet";
+var typedDataArray;
+
 $(function () {
-    var API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/";
-    var TYPED_DATASET = "TypedDataSet";
     //var data;
     // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
-    var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function () {
-        console.log("success");
-        //data = t;
+    var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function (data) {
+        typedDataObject = data.value;
+        console.log(typedDataObject);
+
+        /*console.log("success");
+        var items = [];
+        $.each(data.value, function (i, item) {
+            var html = "<div id='" + item.ID + "'>" + "<h1>" + (parseInt(item.ID) + 1) + ". Entry" +
+                "<small><i> ID: " + item.ID + "</i></small></h1>" +
+                "<ul>";
+
+            $.each(item, function (key, value) {
+                /!* TODO translateLanguage some of the values corresponding to their key
+                    Geslacht (Sex) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Geslacht
+                    Leeftijd (Age) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Leeftijd
+                    Herkomstgroeperingen (Origin) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Herkomstgroeperingen
+                    Perioden (Periods) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Perioden
+
+                    Descriptions for each property -> https://opendata.cbs.nl/ODataApi/odata/71930ned/DataProperties
+                    Information about the complete data set -> https://opendata.cbs.nl/ODataApi/odata/71930ned/TableInfos
+                 *!/
+                html += "<li class='" + key + "'>" + translateLanguage(key) + ": " + value + "</li>";
+            });
+
+            html += "</ul></div>";
+            items.push(html);
+        });
+
+        var $content = $("<section></section>", {
+            "class": "all-crimes",
+            html: items.join("<hr>")
+        });
+
+        $("body").append($content);*/
     });
+
     // Assign handlers
     jqxhr.done(function(data) {
-            var items = [];
-            $.each(data.value, function (i, item) {
-                var html = "<div id='" + item.ID + "'>" + "<h1>" + (parseInt(item.ID) + 1) + ". Entry" +
-                    "<small><i> ID: " + item.ID + "</i></small></h1>" +
-                    "<ul>";
-
-                $.each(item, function (key, value) {
-                    /* TODO translate some of the values corresponding to their key
-                        Geslacht (Sex) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Geslacht
-                        Leeftijd (Age) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Leeftijd
-                        Herkomstgroeperingen (Origin) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Herkomstgroeperingen
-                        Perioden (Periods) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Perioden
-
-                        Descriptions for each property -> https://opendata.cbs.nl/ODataApi/odata/71930ned/DataProperties
-                        Information about the complete data set -> https://opendata.cbs.nl/ODataApi/odata/71930ned/TableInfos
-                     */
-                    html += "<li class='" + key + "'>" + translate(key) + ": " + value + "</li>";
-                });
-
-                html += "</ul></div>";
-                items.push(html);
-            });
-
-            var $content = $("<section></section>", {
-                "class": "all-crimes",
-                html: items.join("<hr>")
-            });
-
-            $("body").append($content);
-
-            console.log(data);
+            console.log("finished getting items");
         })
         .fail(function() {
-            console.log( "error" );
+            console.error("There was an error with the youth crime query!" );
         })
         .always(function() {
-            console.log( "complete" );
+            console.log( "Youth crime api query completed." );
         });
 });
 
-function translate(json_key) {
+function translateLanguage(json_key) {
 
     switch(json_key) {
         case "ID": return "ID";
@@ -58,7 +62,7 @@ function translate(json_key) {
         case "Herkomstgroeperingen": return "Origin";
         case "Perioden": return "Periods";
         case "TotaalAantalHaltJongeren_1": return "Total nr. of convicted minors";
-        case "TotaalMisdrijvenHalt_2": return "TotaalMisdrijvenHalt_2 (untranslated)";
+        case "TotaalMisdrijvenHalt_2": return "Total number of crimes (HALT)";
         case "GeweldsmisdrijvenHalt_3": return "Violent crimes";
         case "VernielingEnOpenbareOrdeHalt_4": return "Destruction of public property";
         case "VermogensmisdrijvenHalt_5": return "Property crimes";
@@ -68,21 +72,52 @@ function translate(json_key) {
         case "OvertredingLeerplichtwet_9": return "Educational attendance law";
         case "VuurwerkovertredingenHalt_10": return "Firework violations";
         case "OverigeOvertredingenHalt_11": return "Other violations";
-        case "OnbekendMisdrijfOfOvertreding_12": return "OnbekendMisdrijfOfOvertreding_12 (untranslated)";
-        case "TotaalAantalHaltJongeren_13": return "TotaalAantalHaltJongeren_13 (untranslated)";
-        case "TotaalMisdrijvenHalt_14": return "TotaalMisdrijvenHalt_14 (untranslated)";
-        case "GeweldsmisdrijvenHalt_15": return "GeweldsmisdrijvenHalt_15 (untranslated)";
-        case "VernielingEnOpenbareOrdeHalt_16": return "VernielingEnOpenbareOrdeHalt_16 (untranslated)";
-        case "VermogensmisdrijvenHalt_17": return "VermogensmisdrijvenHalt_17 (untranslated)";
-        case "OverigeMisdrijvenHalt_18": return "OverigeMisdrijvenHalt_18 (untranslated)";
-        case "TotaalOvertredingenHalt_19": return "TotaalOvertredingenHalt_19 (untranslated)";
-        case "BaldadigheidHalt_20": return "BaldadigheidHalt_20 (untranslated)";
-        case "OvertredingLeerplichtwet_21": return "OvertredingLeerplichtwet_21 (untranslated)";
-        case "VuurwerkovertredingenHalt_22": return "VuurwerkovertredingenHalt_22 (untranslated)";
-        case "OverigeOvertredingenHalt_23": return "OverigeOvertredingenHalt_23 (untranslated)";
-        case "OnbekendMisdrijfOfOvertreding_24": return "OnbekendMisdrijfOfOvertreding_24 (untranslated)";
-
+        case "OnbekendMisdrijfOfOvertreding_12": return "Unknown crime or offense";
+        case "TotaalAantalHaltJongeren_13": return "Total number of youth affiliated with Halt";
+        case "TotaalMisdrijvenHalt_14": return "Total number of crimes (HALT)";
+        case "GeweldsmisdrijvenHalt_15": return "Violence crimes (HALT)";
+        case "VernielingEnOpenbareOrdeHalt_16": return "Vandalism and public order disturbance (HALT)";
+        case "VermogensmisdrijvenHalt_17": return "Capital crimes (HALT)";
+        case "OverigeMisdrijvenHalt_18": return "Remaining crimes (HALT)";
+        case "TotaalOvertredingenHalt_19": return "Total number of offenses (HALT)";
+        case "BaldadigheidHalt_20": return "Pranks/Offense/Disgust? (HALT)";
+        case "OvertredingLeerplichtwet_21": return "Offenses public education law";
+        case "VuurwerkovertredingenHalt_22": return "Offenses related to fireworks (HALT)";
+        case "OverigeOvertredingenHalt_23": return "Remaining offenses (HALT)";
+        case "OnbekendMisdrijfOfOvertreding_24": return "Unknown crime or offense";
     }
 
-    return null;
+    return json_key + " (untranslated)";
+}
+
+function getValue(originalKey, originalValue) {
+    var url = "";
+    switch (originalKey) {
+        case "Geslacht": // sex
+            url += "Geslacht";
+            break;
+        case "Leeftijd": // age
+            url += "Leeftijd";
+            break;
+        case "Herkomstgroeperingen": // origin
+            url += "Herkomstgroeperingen";
+            break;
+        case "Perioden": // periods
+            url += "Perioden";
+            break;
+
+        default: // no available value translation
+            return originalValue;
+    }
+
+    // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
+    var jqxhr = $.getJSON(API_URL + url, function (data) {
+        $.each(data.value, function(i, item) {
+            console.log(originalKey, originalValue === item.Key);
+            if (item.Key === originalValue) {
+                return item.Title;
+            }
+        });
+        return "value translation not found";
+    });
 }
