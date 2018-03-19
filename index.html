@@ -3,10 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <title>Dutch Youth Crime Infographic</title>
+    <link href="./css/style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
+    <div id="loading">
+        <p>
+            <img src="./img/loading.gif" width="300px" height="300px"/>
+            <br>
+            Loading data...
+        </p>
+    </div>
 
+    <header id="top">
+        <h1>Infographic Youth Criminality</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#top">Back to the top</a></li>
+            <li><a href="#content">Data</a></li>
+            <li><a href="#action">Search</a></li>
+            <li>
+                <button onclick="loadAPIData()">
+                    Reload data
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <section id="content">
+        Content goes here!
+    </section>
+    <hr>
+    <section id="action">
+
+        This is where you would find something special.
+    </section>
+    <hr>
+    <footer>
+
+        The Data taken from <a href="https://opendata.cbs.nl/ODataApi/odata/71930ned/">The Institute for
+        Statistics API for Youth Crime in the Netherlands</a>.
+    </footer>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="./js/main.js" ></script>

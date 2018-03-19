@@ -1,10 +1,53 @@
-var API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/";
-var TYPED_DATASET = "TypedDataSet";
-var typedDataArray;
-var entryDisplayCount = 100, currentID = 0;
+const API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/";
+const TYPED_DATASET = "TypedDataSet",
+    SEX_TRANSLATION = "Geslacht",
+    AGE_TRANSLATION = "Leeftijd",
+    ORIGIN_TRANSLATION = "Herkomstgroeperingen",
+    PERIOD_TRANSLATION = "Perioden";
+var typedDataArray, sexTranslations, ageTranslations, originTranslations, periodTranslations;
+var entryDisplayCount = 10,
+    currentID = 0;
+
+var loading = true;
 
 $(function () {
-    //var data;
+    loadAPIData(function() {
+        displayData(currentID, entryDisplayCount)
+    });
+});
+
+$(document).ajaxStart(function() {
+    if (!loading) {
+        toggleLoadingScreen();
+    }
+});
+$(document).ajaxStop(function() {
+    toggleLoadingScreen();
+});
+
+function toggleLoadingScreen() {
+    if (!loading) {
+        $("#loading").fadeIn("fast");
+    } else {
+        $("#loading").fadeOut("slow");
+    }
+
+    loading = !loading;
+}
+
+function loadAPIData(callback) {
+    loadPeriodTranslations(
+        loadOriginTranslations(
+            loadAgeTranslations(
+                loadSexTranslations(
+                    loadTypedDataSet()
+                )
+            )
+        )
+    );
+}
+
+function loadTypedDataSet(callback) {
     // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
     var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function (data) {
         typedDataArray = data.value;
@@ -13,20 +56,81 @@ $(function () {
 
     // Assign handlers
     jqxhr.done(function(data) {
-            console.log("Finished getting items");
-            displayData(currentID, entryDisplayCount);
-        })
+        console.log("Finished loading typed data set");
+        if (callback != null) callback();
+    })
         .fail(function() {
             console.error("There was an error with the youth crime query!" );
-        })
-        .always(function() {
-            console.log( "Youth crime api query completed." );
         });
-});
+}
+
+function loadSexTranslations(callback) {
+    var jqxhr = $.getJSON(API_URL + SEX_TRANSLATION, function (data) {
+        sexTranslations = data.value;
+        console.log(sexTranslations);
+    });
+
+    // Assign handlers
+    jqxhr.done(function(data) {
+        console.log("Finished loading sex translations");
+        if (callback != null) callback();
+    })
+        .fail(function() {
+            console.error("There was an error with the youth crime query!" );
+        });
+}
+
+function loadAgeTranslations(callback) {
+    var jqxhr = $.getJSON(API_URL + AGE_TRANSLATION, function (data) {
+        ageTranslations = data.value;
+        console.log(ageTranslations);
+    });
+
+    // Assign handlers
+    jqxhr.done(function(data) {
+        console.log("Finished loading age translations");
+        if (callback != null) callback();
+    })
+        .fail(function() {
+            console.error("There was an error with the youth crime query!" );
+        });
+}
+
+function loadOriginTranslations(callback) {
+    var jqxhr = $.getJSON(API_URL + ORIGIN_TRANSLATION, function (data) {
+        originTranslations = data.value;
+        console.log(originTranslations);
+    });
+
+    // Assign handlers
+    jqxhr.done(function(data) {
+        console.log("Finished loading origin translations");
+        if (callback != null) callback();
+    })
+        .fail(function() {
+            console.error("There was an error with the youth crime query!" );
+        });
+}
+
+function loadPeriodTranslations(callback) {
+    var jqxhr = $.getJSON(API_URL + PERIOD_TRANSLATION, function (data) {
+        periodTranslations = data.value;
+        console.log(periodTranslations);
+    });
+
+    // Assign handlers
+    jqxhr.done(function(data) {
+        console.log("Finished loading period translation");
+        if (callback != null) callback();
+    })
+        .fail(function() {
+            console.error("There was an error with the youth crime query!" );
+        });
+}
 
 function displayData(startItemID, itemCount) {
     var items = [];
-    for (var i = currentID; i > typedDataArray.length && i > currentID + entryDisplayCount; i++) {
+    for (var i = currentID; i < typedDataArray.length && i > currentID + entryDisplayCount; i++) {
         var item = typedDataArray[i];
         var html = "<div id='" + item.ID + "'>" + "<h1>" + (parseInt(item.ID) + 1) + ". Entry" +
             "<small><i> ID: " + item.ID + "</i></small></h1>" +
@@ -90,7 +194,7 @@ function translateLanguage(json_key) {
         case "OverigeOvertredingenHalt_23": return "Remaining offenses (HALT)";
         case "OnbekendMisdrijfOfOvertreding_24": return "Unknown crime or offense";
     }
-
+    console.warn("No translation value was found for'", json_key, "'");
     return json_key + " (untranslated)";
 }
 
