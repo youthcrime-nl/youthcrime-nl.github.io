@@ -9,49 +9,85 @@ var typedDataArray, genderTranslations, ageTranslations, originTranslations, per
 var statistics = {},
     filteredStats = {};
 
-var loading = true;
+var $contentContainer;
 
 $(function () {
     loadAPIData();
-
 });
 
 $(document).ajaxStart(function() {
-    if (!loading) {
-        toggleLoadingScreen();
-    }
+    toggleLoadingScreen();
 });
 $(document).ajaxStop(function() {
     toggleLoadingScreen();
 });
 
 function toggleLoadingScreen() {
-    if (!loading) {
+    if (!isDataLoaded()) {
         $("#loading").fadeIn("fast");
     } else {
         $("#loading").fadeOut("slow");
     }
-
-    loading = !loading;
 }
 
 function loadAPIData() {
 
-    loadPeriodTranslations(
-        loadOriginTranslations(
-            loadAgeTranslations(
-                loadGenderTranslations(
-                    loadTypedDataSet()
-                )
-            )
-        )
-    );
+    typedDataArray = undefined;
+    genderTranslations = undefined;
+    ageTranslations = undefined;
+    originTranslations = undefined;
+    periodTranslations = undefined;
+
+    loadTypedDataSet();
+    loadPeriodTranslations();
+    loadOriginTranslations();
+    loadAgeTranslations();
+    loadGenderTranslations();
 }
 
-function convertToStats(callback) {
-    if (callback != null) callback();
+function updateStatDisplay(data) {
+    if (isDataLoaded()) {
+        convertToStats(data);
+        displayStats(statistics);
+    }
+}
+
+
+function displayStats(stats) {
+    console.log("Displaying statistics");
+    $contentContainer = $("#content")[0];
+
+    var $table = $("<table>");
+    $table.append("<tr><th>Tag</th><th>Category</th><th>Subcategory</th></tr>");
+
+    $.each(stats, function(keyForObject, crimeCategoryObject) {
+        $.each(crimeCategoryObject, function (key, array) {
+            $table.append(
+                "<tr>" +
+                "<td>" + keyForObject.toString() + "</td>" +
+                "<td>" + key + "</td>" +
+                "<td>" + array.length + "</td>" +
+                "</tr>");
+        })
+    });
+
+    console.log($table);
+
+    $contentContainer.append($table);
+}
+
+function isDataLoaded() {
+    return typedDataArray !== undefined
+        && genderTranslations !== undefined
+        && ageTranslations !== undefined
+        && originTranslations !== undefined
+        && periodTranslations !== undefined;
+
+}
+
+function convertToStats(data) {
     statistics = {};
-    $.each(typedDataArray, function(indexInArray, obj) {
+    $.each(data, function(indexInArray, obj) {
         $.each(obj, function (key, value) {
             if (key.toString() !== "ID") {
                 if (statistics[key] === undefined) {
@@ -78,39 +114,44 @@ function fixJSONKey(data, key) {
     return fixedJSON;
 }
 
-function loadTypedDataSet(callback) {
+function loadTypedDataSet() {
     // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
     var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function (data) {
 
         typedDataArray = fixJSONKey(data.value, "ID");
         console.log(typedDataArray);
-        if (callback != null) callback();
+
+        updateStatDisplay(typedDataArray);
     });
 
     // Assign handlers
     jqxhr.fail(function() {
             console.error("There was an error with the youth crime query!" );
         });
+
 }
 
-function loadGenderTranslations(callback) {
+function loadGenderTranslations() {
     var jqxhr = $.getJSON(API_URL + GENDER_TRANSLATION, function (data) {
         genderTranslations = fixJSONKey(data.value);
         console.log(genderTranslations);
-        if (callback != null) callback();
+
+        updateStatDisplay(typedDataArray);
     });
 
     // Assign handlers
     jqxhr.fail(function() {
             console.error("There was an error with the youth crime query!");
         });
+
 }
 
-function loadAgeTranslations(callback) {
+function loadAgeTranslations() {
     var jqxhr = $.getJSON(API_URL + AGE_TRANSLATION, function (data) {
         ageTranslations = fixJSONKey(data.value);
         console.log(ageTranslations);
-        if (callback != null) callback();
+
+        updateStatDisplay(typedDataArray);
     });
 
     // Assign handlers
@@ -119,11 +160,11 @@ function loadAgeTranslations(callback) {
         });
 }
 
-function loadOriginTranslations(callback) {
+function loadOriginTranslations() {
     var jqxhr = $.getJSON(API_URL + ORIGIN_TRANSLATION, function (data) {
         originTranslations = fixJSONKey(data.value);
         console.log(originTranslations);
-        if (callback != null) callback();
+        updateStatDisplay(typedDataArray);
     });
 
     // Assign handlers
@@ -136,50 +177,13 @@ function loadPeriodTranslations(callback) {
     var jqxhr = $.getJSON(API_URL + PERIOD_TRANSLATION, function (data) {
         periodTranslations = fixJSONKey(data.value);
         console.log(periodTranslations);
-        if (callback != null) callback();
-        convertToStats();
+        updateStatDisplay(typedDataArray);
     });
 
     // Assign handlers
     jqxhr.fail(function() {
             console.error("There was an error with the youth crime query!" );
         });
-}
-
-
-
-
-function displayData(startItemID, itemCount) {
-    var items = [];
-    for (var i = currentID; i < typedDataArray.length && i > currentID + entryDisplayCount; i++) {
-        var item = typedDataArray[i];
-        var html = "<div id='" + item.ID + "'>" + "<h1>" + (parseInt(item.ID) + 1) + ". Entry" +
-            "<small><i> ID: " + item.ID + "</i></small></h1>" +
-            "<ul>";
-
-        $.each(item, function (key, value) {
-            /* TODO translateLanguage some of the values corresponding to their key
-                Geslacht (Sex) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Geslacht
-                Leeftijd (Age) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Leeftijd
-                Herkomstgroeperingen (Origin) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Herkomstgroeperingen
-                Perioden (Periods) -> https://opendata.cbs.nl/ODataApi/odata/71930ned/Perioden
-
-                Descriptions for each property -> https://opendata.cbs.nl/ODataApi/odata/71930ned/DataProperties
-                Information about the complete data set -> https://opendata.cbs.nl/ODataApi/odata/71930ned/TableInfos
-             */
-            html += "<li class='" + key + "'>" + translateLanguage(key) + ": " + value + "</li>";
-        });
-
-        html += "</ul></div>";
-        items.push(html);
-    }
-
-    var $content = $("<section></section>", {
-        "class": "all-crimes",
-        html: items.join("<hr>")
-    });
-
-    $("body").append($content);
 }
 
 function translateLanguage(json_key) {
