@@ -1,19 +1,19 @@
 const API_URL = "https://opendata.cbs.nl/ODataApi/odata/71930ned/";
 const TYPED_DATASET = "TypedDataSet",
-    SEX_TRANSLATION = "Geslacht",
+    GENDER_TRANSLATION = "Geslacht",
     AGE_TRANSLATION = "Leeftijd",
     ORIGIN_TRANSLATION = "Herkomstgroeperingen",
     PERIOD_TRANSLATION = "Perioden";
-var typedDataArray, sexTranslations, ageTranslations, originTranslations, periodTranslations;
-var entryDisplayCount = 10,
-    currentID = 0;
+var typedDataArray, genderTranslations, ageTranslations, originTranslations, periodTranslations;
+
+var statistics = {},
+    filteredStats = {};
 
 var loading = true;
 
 $(function () {
-    loadAPIData(function() {
-        displayData(currentID, entryDisplayCount)
-    });
+    loadAPIData();
+
 });
 
 $(document).ajaxStart(function() {
@@ -35,11 +35,12 @@ function toggleLoadingScreen() {
     loading = !loading;
 }
 
-function loadAPIData(callback) {
+function loadAPIData() {
+
     loadPeriodTranslations(
         loadOriginTranslations(
             loadAgeTranslations(
-                loadSexTranslations(
+                loadGenderTranslations(
                     loadTypedDataSet()
                 )
             )
@@ -47,86 +48,106 @@ function loadAPIData(callback) {
     );
 }
 
+function convertToStats(callback) {
+    if (callback != null) callback();
+    statistics = {};
+    $.each(typedDataArray, function(indexInArray, obj) {
+        $.each(obj, function (key, value) {
+            if (key.toString() !== "ID") {
+                if (statistics[key] === undefined) {
+                    statistics[key] = {};
+                }
+                if (statistics[key][value] === undefined) {
+                    statistics[key][value] = [];
+                }
+                statistics[key][value].push(obj);
+            }
+        });
+    });
+    console.log("All stats", statistics);
+}
+
+function fixJSONKey(data, key) {
+    if (key === undefined)
+        key = "Key";
+
+    var fixedJSON = {};
+    $.each(data, function (i, item){
+        fixedJSON[item[key]] = item;
+    });
+    return fixedJSON;
+}
+
 function loadTypedDataSet(callback) {
     // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
     var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function (data) {
-        typedDataArray = data.value;
+
+        typedDataArray = fixJSONKey(data.value, "ID");
         console.log(typedDataArray);
+        if (callback != null) callback();
     });
 
     // Assign handlers
-    jqxhr.done(function(data) {
-        console.log("Finished loading typed data set");
-        if (callback != null) callback();
-    })
-        .fail(function() {
+    jqxhr.fail(function() {
             console.error("There was an error with the youth crime query!" );
         });
 }
 
-function loadSexTranslations(callback) {
-    var jqxhr = $.getJSON(API_URL + SEX_TRANSLATION, function (data) {
-        sexTranslations = data.value;
-        console.log(sexTranslations);
+function loadGenderTranslations(callback) {
+    var jqxhr = $.getJSON(API_URL + GENDER_TRANSLATION, function (data) {
+        genderTranslations = fixJSONKey(data.value);
+        console.log(genderTranslations);
+        if (callback != null) callback();
     });
 
     // Assign handlers
-    jqxhr.done(function(data) {
-        console.log("Finished loading sex translations");
-        if (callback != null) callback();
-    })
-        .fail(function() {
-            console.error("There was an error with the youth crime query!" );
+    jqxhr.fail(function() {
+            console.error("There was an error with the youth crime query!");
         });
 }
 
 function loadAgeTranslations(callback) {
     var jqxhr = $.getJSON(API_URL + AGE_TRANSLATION, function (data) {
-        ageTranslations = data.value;
+        ageTranslations = fixJSONKey(data.value);
         console.log(ageTranslations);
+        if (callback != null) callback();
     });
 
     // Assign handlers
-    jqxhr.done(function(data) {
-        console.log("Finished loading age translations");
-        if (callback != null) callback();
-    })
-        .fail(function() {
+    jqxhr.fail(function() {
             console.error("There was an error with the youth crime query!" );
         });
 }
 
 function loadOriginTranslations(callback) {
     var jqxhr = $.getJSON(API_URL + ORIGIN_TRANSLATION, function (data) {
-        originTranslations = data.value;
+        originTranslations = fixJSONKey(data.value);
         console.log(originTranslations);
+        if (callback != null) callback();
     });
 
     // Assign handlers
-    jqxhr.done(function(data) {
-        console.log("Finished loading origin translations");
-        if (callback != null) callback();
-    })
-        .fail(function() {
+    jqxhr.fail(function() {
             console.error("There was an error with the youth crime query!" );
         });
 }
 
 function loadPeriodTranslations(callback) {
     var jqxhr = $.getJSON(API_URL + PERIOD_TRANSLATION, function (data) {
-        periodTranslations = data.value;
+        periodTranslations = fixJSONKey(data.value);
         console.log(periodTranslations);
+        if (callback != null) callback();
+        convertToStats();
     });
 
     // Assign handlers
-    jqxhr.done(function(data) {
-        console.log("Finished loading period translation");
-        if (callback != null) callback();
-    })
-        .fail(function() {
+    jqxhr.fail(function() {
             console.error("There was an error with the youth crime query!" );
         });
 }
+
+
+
 
 function displayData(startItemID, itemCount) {
     var items = [];
@@ -196,36 +217,4 @@ function translateLanguage(json_key) {
     }
     console.warn("No translation value was found for'", json_key, "'");
     return json_key + " (untranslated)";
-}
-
-function getValue(originalKey, originalValue) {
-    var url = "";
-    switch (originalKey) {
-        case "Geslacht": // sex
-            url += "Geslacht";
-            break;
-        case "Leeftijd": // age
-            url += "Leeftijd";
-            break;
-        case "Herkomstgroeperingen": // origin
-            url += "Herkomstgroeperingen";
-            break;
-        case "Perioden": // periods
-            url += "Perioden";
-            break;
-
-        default: // no available value translation
-            return originalValue;
-    }
-
-    // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
-    var jqxhr = $.getJSON(API_URL + url, function (data) {
-        $.each(data.value, function(i, item) {
-            console.log(originalKey, originalValue === item.Key);
-            if (item.Key === originalValue) {
-                return item.Title;
-            }
-        });
-        return "value translation not found";
-    });
 }
