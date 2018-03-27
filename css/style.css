@@ -21,3 +21,18 @@ div#loading p {
     line-height: 100px;
     margin: calc(50vh - 150px) auto auto auto;
 }
+
+table {
+    border: #262626 2px solid;
+    text-align: center;
+}
+tr {
+
+}
+th {
+    font-weight: bold;
+}
+td {
+    border: #464646 1px solid;
+    min-width: 200px;
+}

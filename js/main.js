@@ -56,16 +56,17 @@ function updateStatDisplay(data) {
 function displayStats(stats) {
     console.log("Displaying statistics");
     $contentContainer = $("#content")[0];
+    $contentContainer.innerHTML = "";
 
     var $table = $("<table>");
-    $table.append("<tr><th>Tag</th><th>Category</th><th>Subcategory</th></tr>");
+    $table.append("<tr><th>Tag</th><th>Category</th><th>Count</th></tr>");
 
-    $.each(stats, function(keyForObject, crimeCategoryObject) {
-        $.each(crimeCategoryObject, function (key, array) {
+    $.each(stats, function(key, crimeCategoryObject) {
+        $.each(crimeCategoryObject, function (categoryKey, array) {
             $table.append(
                 "<tr>" +
-                "<td>" + keyForObject.toString() + "</td>" +
-                "<td>" + key + "</td>" +
+                "<td>" + translateLanguage(key) + "</td>" +
+                "<td>" + translateData(key, categoryKey) + "</td>" +
                 "<td>" + array.length + "</td>" +
                 "</tr>");
         })
@@ -73,7 +74,7 @@ function displayStats(stats) {
 
     console.log($table);
 
-    $contentContainer.append($table);
+    $table.appendTo($contentContainer);
 }
 
 function isDataLoaded() {
@@ -117,7 +118,6 @@ function fixJSONKey(data, key) {
 function loadTypedDataSet() {
     // Look at "http://api.jquery.com/jquery.getjson/#jqxhr-object" for more information about the return type
     var jqxhr = $.getJSON(API_URL + TYPED_DATASET, function (data) {
-
         typedDataArray = fixJSONKey(data.value, "ID");
         console.log(typedDataArray);
 
@@ -186,11 +186,33 @@ function loadPeriodTranslations(callback) {
         });
 }
 
+
+
+function translateData (tag, categoryKey) {
+    var translationObject;
+    switch (tag) {
+        case "Geslacht":
+            translationObject = genderTranslations;
+            break;
+        case "Leeftijd":
+            translationObject = ageTranslations;
+            break;
+        case "Herkomstgroeperingen":
+            translationObject = originTranslations;
+            break;
+        case "Perioden":
+            translationObject = periodTranslations;
+            break;
+        default: return categoryKey;
+    }
+    return translationObject[categoryKey].Title;
+}
+
 function translateLanguage(json_key) {
 
     switch(json_key) {
         case "ID": return "ID";
-        case "Geslacht": return "Sex";
+        case "Geslacht": return "Gender";
         case "Leeftijd": return "Age";
         case "Herkomstgroeperingen": return "Origin";
         case "Perioden": return "Periods";
